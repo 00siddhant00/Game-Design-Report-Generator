@@ -140,6 +140,51 @@
         </div>
     </div>
 
+    <!-- IMAGE UPLOAD/URL MODAL -->
+    <div id="image-modal"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
+        <div id="image-modal-content"
+            class="bg-white dark:bg-[#121214] border border-zinc-200 dark:border-zinc-800 p-8 rounded-xl shadow-2xl max-w-md w-full mx-4 relative transform scale-95 opacity-0 transition-all duration-300">
+            <h2 class="text-xl font-bold text-zinc-900 dark:text-white mb-2 uppercase tracking-wide">Insert Image</h2>
+            <p class="text-sm text-zinc-500 dark:text-zinc-400 mb-6 font-medium">Paste an image URL from the web or drop
+                a file.</p>
+
+            <div class="space-y-4">
+                <div>
+                    <input type="url" id="img-url-input" class="input-field text-sm"
+                        placeholder="https://example.com/image.png" autocomplete="off">
+                </div>
+                <div class="relative flex items-center py-2">
+                    <div class="flex-grow border-t border-zinc-200 dark:border-zinc-800"></div>
+                    <span
+                        class="flex-shrink-0 mx-4 text-xs text-zinc-400 font-semibold uppercase tracking-widest">OR</span>
+                    <div class="flex-grow border-t border-zinc-200 dark:border-zinc-800"></div>
+                </div>
+                <div id="drop-zone"
+                    class="border-2 border-dashed border-zinc-300 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-500 rounded-lg p-8 text-center cursor-pointer transition-colors bg-zinc-50 dark:bg-zinc-800/30">
+                    <input type="file" id="img-file-input" class="hidden" accept="image/*">
+                    <svg class="w-8 h-8 mx-auto mb-3 text-zinc-400" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                    </svg>
+                    <p class="text-sm font-medium text-zinc-600 dark:text-zinc-300">Click to browse or drag & drop</p>
+                    <p class="text-xs text-zinc-400 mt-1">PNG, JPG, GIF up to 5MB</p>
+                </div>
+                <div class="flex gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-800 mt-4">
+                    <button type="button" onclick="closeImageModal()"
+                        class="w-full py-2.5 px-4 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 rounded-md font-semibold text-sm hover:bg-zinc-200 dark:hover:bg-zinc-700 transition tracking-wide">
+                        Cancel
+                    </button>
+                    <button type="button" onclick="confirmImageInsert()"
+                        class="w-full py-2.5 px-4 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-md font-semibold text-sm hover:bg-zinc-800 dark:hover:bg-zinc-200 transition tracking-wide">
+                        Insert
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- THE UI FORM (Visible on Screen) -->
     <div id="app-container" class="max-w-4xl mx-auto p-6 md:p-8 pb-32">
 
@@ -296,20 +341,33 @@
                         </div>
 
                         <div>
-                            <label class="label-text">Platforms Available</label>
-                            <div class="flex gap-4 mt-3">
-                                <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox"
-                                        id="plat-ios"
-                                        class="w-4 h-4 text-zinc-900 border-zinc-300 rounded dark:bg-zinc-800 dark:border-zinc-700">
-                                    <span class="text-sm">iOS</span></label>
-                                <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox"
-                                        id="plat-and"
-                                        class="w-4 h-4 text-zinc-900 border-zinc-300 rounded dark:bg-zinc-800 dark:border-zinc-700">
-                                    <span class="text-sm">Android</span></label>
-                                <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox"
-                                        id="plat-web"
-                                        class="w-4 h-4 text-zinc-900 border-zinc-300 rounded dark:bg-zinc-800 dark:border-zinc-700">
-                                    <span class="text-sm">Web</span></label>
+                            <label class="label-text">Platforms Available <span
+                                    class="text-zinc-400 font-normal lowercase">(Store links optional)</span></label>
+                            <div class="flex flex-col gap-2 mt-3">
+                                <div class="flex items-center gap-2">
+                                    <label class="flex items-center gap-1.5 cursor-pointer w-20"><input type="checkbox"
+                                            id="plat-ios"
+                                            class="w-4 h-4 text-zinc-900 border-zinc-300 rounded dark:bg-zinc-800 dark:border-zinc-700"
+                                            onchange="document.getElementById('url-ios').classList.toggle('hidden', !this.checked)">
+                                        <span class="text-sm">iOS</span></label>
+                                    <input type="url" id="url-ios" class="input-field hidden !py-1 !px-2 text-xs flex-1"
+                                        placeholder="App Store URL">
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <label class="flex items-center gap-1.5 cursor-pointer w-20"><input type="checkbox"
+                                            id="plat-and"
+                                            class="w-4 h-4 text-zinc-900 border-zinc-300 rounded dark:bg-zinc-800 dark:border-zinc-700"
+                                            onchange="document.getElementById('url-and').classList.toggle('hidden', !this.checked)">
+                                        <span class="text-sm">Android</span></label>
+                                    <input type="url" id="url-and" class="input-field hidden !py-1 !px-2 text-xs flex-1"
+                                        placeholder="Google Play URL">
+                                </div>
+                                <div class="flex items-center gap-2 pt-1">
+                                    <label class="flex items-center gap-1.5 cursor-pointer w-20"><input type="checkbox"
+                                            id="plat-web"
+                                            class="w-4 h-4 text-zinc-900 border-zinc-300 rounded dark:bg-zinc-800 dark:border-zinc-700">
+                                        <span class="text-sm">Web</span></label>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -544,7 +602,7 @@
                                 <span
                                     class="text-zinc-400 dark:text-zinc-600 text-xs font-mono font-medium loop-num">1.</span>
                                 <input type="text" class="input-field py-2 text-sm flex-1 loop-input ads-input"
-                                    placeholder="e.g. Rewarded Ad after level complete" required>
+                                    placeholder="e.g. Rewarded Ad after level complete" required disabled>
                                 <button type="button" onclick="this.parentElement.remove(); updateLoopNumbers('ads')"
                                     class="absolute -right-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-full p-0.5 text-zinc-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -683,6 +741,8 @@
             <div
                 style="border-bottom: 2px solid #000; padding-bottom: 0.5rem; margin-bottom: 1.5rem; overflow: hidden;">
                 <div style="float: right; text-align: right; color: #444; font-size: 10pt;">
+                    <div id="out-store-badges"
+                        style="display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 6px;"></div>
                     <strong>Date:</strong> <span id="out-date"></span><br>
                     <strong>Author:</strong> Agent Vaibhav | Blagine Corp
                 </div>
@@ -697,7 +757,11 @@
 
             <div
                 style="margin-top: 40px; text-align: center; color: #999; font-size: 8pt; border-top: 1px solid #eee; padding-top: 15px; text-transform: uppercase; letter-spacing: 1px;">
-                Internal Intelligence Dossier // Blagine Corp
+                Internal Intelligence REPORT // Blagine Corp
+            </div>
+            <div
+                style="text-align: center; color: #bbb; font-size: 6pt; margin-top: 5px; text-transform: uppercase; letter-spacing: 2px; opacity: 0.7;">
+                Confidential Property of Blagine Corp.
             </div>
         </div>
     </div>
@@ -733,8 +797,10 @@
             const adsSection = document.getElementById('ads-section');
             if (val === 'Ad-Driven' || val === 'Hybrid (Ads + IAP)') {
                 adsSection.classList.remove('hidden');
+                document.querySelectorAll('.ads-input').forEach(el => el.disabled = false);
             } else {
                 adsSection.classList.add('hidden');
+                document.querySelectorAll('.ads-input').forEach(el => el.disabled = true);
             }
         }
 
@@ -783,6 +849,7 @@
                             <button type="button" onclick="fmtCmd('${id}', 'bullet')" class="toolbar-btn" title="Bullet List">•</button>
                             <button type="button" onclick="fmtCmd('${id}', 'number')" class="toolbar-btn" title="Numbered List">1.</button>
                             <button type="button" onclick="fmtCmd('${id}', 'quote')" class="toolbar-btn" title="Blockquote"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path></svg></button>
+                            <button type="button" onclick="fmtCmd('${id}', 'image')" class="toolbar-btn" title="Insert Image"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></button>
                         </div>
                         <div id="${id}" contenteditable="true" class="insight-desc formatted-text w-full bg-white dark:bg-[#18181b] border border-zinc-200 dark:border-zinc-800 rounded-b-md px-4 py-3 min-h-[120px] text-sm text-zinc-800 dark:text-zinc-200 focus:outline-none focus:border-zinc-400 dark:focus:border-zinc-600 focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-600 transition-colors duration-200 shadow-sm" data-placeholder="Start typing your observation here..."></div>
                     </div>
@@ -814,8 +881,129 @@
                 case 'bullet': document.execCommand('insertUnorderedList'); break;
                 case 'number': document.execCommand('insertOrderedList'); break;
                 case 'quote': document.execCommand('formatBlock', false, '<blockquote>'); break;
+                case 'image':
+                    openImageModal(id);
+                    break;
             }
         }
+
+        let currentEditorId = null;
+        let savedSelection = null;
+
+        function saveSelection() {
+            if (window.getSelection) {
+                let sel = window.getSelection();
+                if (sel.getRangeAt && sel.rangeCount) {
+                    return sel.getRangeAt(0);
+                }
+            }
+            return null;
+        }
+
+        function restoreSelection(range) {
+            if (range) {
+                if (window.getSelection) {
+                    let sel = window.getSelection();
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                }
+            }
+        }
+
+        function openImageModal(id) {
+            currentEditorId = id;
+            savedSelection = saveSelection();
+            const modal = document.getElementById('image-modal');
+            const content = document.getElementById('image-modal-content');
+            document.getElementById('img-url-input').value = '';
+            document.getElementById('img-file-input').value = '';
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeImageModal() {
+            const modal = document.getElementById('image-modal');
+            const content = document.getElementById('image-modal-content');
+
+            modal.classList.add('opacity-0');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                currentEditorId = null;
+            }, 300);
+        }
+
+        function insertImageHtml(src) {
+            if (!currentEditorId) return;
+            const el = document.getElementById(currentEditorId);
+            el.focus();
+            restoreSelection(savedSelection);
+            const imgHtml = `<img src="${src}" style="max-width:100%; border-radius:6px; margin:8px 0; max-height:400px; object-fit:contain;" alt="Insight Image">`;
+            document.execCommand('insertHTML', false, imgHtml);
+            closeImageModal();
+        }
+
+        function confirmImageInsert() {
+            const url = document.getElementById('img-url-input').value.trim();
+            if (url) {
+                insertImageHtml(url);
+            } else {
+                closeImageModal();
+            }
+        }
+
+        function handleImageFile(file) {
+            if (!file || !file.type.startsWith('image/')) {
+                showToast("Please upload a valid image file.");
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (re) => {
+                insertImageHtml(re.target.result);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Setup Drag & Drop
+        document.addEventListener('DOMContentLoaded', () => {
+            const dropZone = document.getElementById('drop-zone');
+            const fileInput = document.getElementById('img-file-input');
+
+            if (dropZone && fileInput) {
+                dropZone.addEventListener('click', () => fileInput.click());
+
+                dropZone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    dropZone.classList.add('border-zinc-400', 'dark:border-zinc-500', 'bg-zinc-100', 'dark:bg-zinc-800/50');
+                });
+
+                dropZone.addEventListener('dragleave', (e) => {
+                    e.preventDefault();
+                    dropZone.classList.remove('border-zinc-400', 'dark:border-zinc-500', 'bg-zinc-100', 'dark:bg-zinc-800/50');
+                });
+
+                dropZone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    dropZone.classList.remove('border-zinc-400', 'dark:border-zinc-500', 'bg-zinc-100', 'dark:bg-zinc-800/50');
+                    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                        handleImageFile(e.dataTransfer.files[0]);
+                    }
+                });
+
+                fileInput.addEventListener('change', (e) => {
+                    if (e.target.files && e.target.files[0]) {
+                        handleImageFile(e.target.files[0]);
+                    }
+                });
+            }
+        });
 
         function updateMediaPreviews() {
             const container = document.getElementById('media-preview-container');
@@ -893,6 +1081,9 @@
             document.getElementById('out-date').innerText = date;
             document.getElementById('out-title').innerText = title.toUpperCase();
 
+            // Set document title so the PDF exports as "{App Name} (GDR).pdf"
+            document.title = `${title} (GDR)`;
+
             let adStrategy = document.getElementById('ad-creative-strategy').value;
             if (adStrategy === 'Other (Define Manually)') {
                 adStrategy = document.getElementById('ad-creative-other').value || 'Unspecified';
@@ -901,6 +1092,18 @@
             // Star visuals
             let starsVisual = '';
             for (let i = 1; i <= 10; i++) starsVisual += i <= rating ? '★' : '☆';
+
+            // Store Badges
+            const storeBadges = document.getElementById('out-store-badges');
+            storeBadges.innerHTML = '';
+            if (document.getElementById('plat-and').checked) {
+                const andUrl = document.getElementById('url-and') ? document.getElementById('url-and').value : '';
+                storeBadges.innerHTML += `<a href="${andUrl || '#'}" target="_blank" style="display:inline-block;"><img src="https://i.ibb.co/BxHB8Rs/Get-it-on-google-play.png" style="height:32px; width:auto;" alt="Get it on Google Play"></a>`;
+            }
+            if (document.getElementById('plat-ios').checked) {
+                const iosUrl = document.getElementById('url-ios') ? document.getElementById('url-ios').value : '';
+                storeBadges.innerHTML += `<a href="${iosUrl || '#'}" target="_blank" style="display:inline-block;"><img src="https://i.ibb.co/G3MBtbky/Get-it-on-app-store.png" style="height:32px; width:auto;" alt="Download on the App Store"></a>`;
+            }
 
             // Build Loops
             const microInputs = Array.from(document.querySelectorAll('.micro-input')).map(el => el.value).filter(val => val.trim() !== '');
@@ -1325,8 +1528,20 @@
                 }
 
                 const actualOs = (st.os || os).toLowerCase();
-                if (actualOs.includes('android')) document.getElementById('plat-and').checked = true;
-                if (actualOs.includes('ios')) document.getElementById('plat-ios').checked = true;
+                if (actualOs.includes('android')) {
+                    document.getElementById('plat-and').checked = true;
+                    if (document.getElementById('url-and')) {
+                        document.getElementById('url-and').value = `https://play.google.com/store/apps/details?id=${appId}`;
+                        document.getElementById('url-and').classList.remove('hidden');
+                    }
+                }
+                if (actualOs.includes('ios') || actualOs.includes('apple')) {
+                    document.getElementById('plat-ios').checked = true;
+                    if (document.getElementById('url-ios')) {
+                        document.getElementById('url-ios').value = `https://apps.apple.com/app/id${appId}`;
+                        document.getElementById('url-ios').classList.remove('hidden');
+                    }
+                }
 
                 showToast("Sensor Tower data initialized!");
                 closeSTModal();
