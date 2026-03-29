@@ -101,59 +101,42 @@
     <div id="st-modal"
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm transition-opacity duration-300">
         <div
-            class="bg-white dark:bg-[#121214] border border-zinc-200 dark:border-zinc-800 p-8 rounded-xl shadow-2xl max-w-lg w-full mx-4 relative transform transition-all duration-300 scale-100 opacity-100">
-            <h2 class="text-xl font-bold text-zinc-900 dark:text-white mb-2 uppercase tracking-wide">Initialize Report
-                Data</h2>
-            <p class="text-sm text-zinc-500 dark:text-zinc-400 mb-6 font-medium">Auto-fill core intel by pasting a
-                Sensor Tower or Google Play URL. Time is money, Agent.</p>
+            class="bg-white dark:bg-[#121214] border border-zinc-200 dark:border-zinc-800 p-8 rounded-xl shadow-2xl max-w-lg w-full mx-4 relative transform transition-all duration-300 scale-100 opacity-100 flex flex-col max-h-[90vh]">
+            <h2 class="text-xl font-bold text-zinc-900 dark:text-white mb-2 uppercase tracking-wide">Search Game</h2>
+            <p class="text-sm text-zinc-500 dark:text-zinc-400 mb-6 font-medium">Type a game name to search and
+                auto-fill core intel. Time is money, Agent.</p>
 
-            <div class="space-y-4">
+            <div class="space-y-4 flex-shrink-0 flex flex-col min-h-0">
                 <div>
-                    <div class="flex items-center justify-between mb-1.5">
-                        <label class="label-text !mb-0">Data Source URL</label>
-                        <div class="flex items-center gap-2 text-zinc-400 dark:text-zinc-500">
-                            <span class="text-[10px] uppercase font-bold tracking-wider">Accepts:</span>
-                            <!-- Sensor Tower SVG substitute -->
-                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M8 3v18h8V3H8zm6 16h-4V5h4v14z" />
-                                <path d="M4 11v10h2V11H4zm14 4v6h2v-6h-2z" />
-                            </svg>
-                            <!-- Play Store SVG substitute -->
-                            <svg class="w-4 h-4 opacity-80" viewBox="0 0 24 24" fill="currentColor">
-                                <path
-                                    d="M3.5 2.5C3.3 2.5 3 2.7 3 3v18c0 .3.3.5.5.5.2 0 .4-.1.5-.2l9.7-9.5-9.7-9.5c-.1-.1-.3-.2-.5-.2z" />
-                                <path d="M14.2 12.3l-10-9.8C4.5 2.1 5 1.9 5.5 2l11.4 6.5-2.7 3.8z" />
-                                <path d="M17.5 9.1l3.5 1.9c.7.4.7 1.4 0 1.8l-3.5 1.9-2.8-2.8 2.8-2.8z" />
-                                <path d="M14.2 11.7l2.8 2.8-11.4 6.5c-.5.3-1 .1-1.3-.3l10-9z" />
-                            </svg>
-                        </div>
-                    </div>
-                    <input type="url" id="st-url-input" class="input-field"
-                        placeholder="https://play.google.com/store/... or app.sensortower.com/..." autofocus>
+                    <input type="text" id="app-search-input" class="input-field" placeholder="e.g. Candy Crush Saga"
+                        autofocus autocomplete="off">
                 </div>
 
-                <div class="flex gap-3 pt-4">
+                <div id="search-spinner" class="hidden flex justify-center py-4">
+                    <svg class="animate-spin h-6 w-6 text-zinc-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                        </circle>
+                        <path class="opacity-75" fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                        </path>
+                    </svg>
+                </div>
+
+                <div id="search-results"
+                    class="space-y-2 overflow-y-auto max-h-[40vh] scrollbar-thin rounded-md empty:hidden">
+                    <!-- Results populated here -->
+                </div>
+
+                <div class="flex gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-800 mt-4">
                     <button type="button" onclick="closeSTModal()"
-                        class="flex-1 py-2.5 px-4 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 rounded-md font-semibold text-sm hover:bg-zinc-200 dark:hover:bg-zinc-700 transition tracking-wide">
+                        class="w-full py-2.5 px-4 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 rounded-md font-semibold text-sm hover:bg-zinc-200 dark:hover:bg-zinc-700 transition tracking-wide">
                         Skip / Enter Manually
-                    </button>
-                    <button type="button" id="st-fetch-btn" onclick="fetchSTData()"
-                        class="flex-1 py-2.5 px-4 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-md font-semibold text-sm hover:bg-zinc-800 dark:hover:bg-zinc-200 transition tracking-wide flex items-center justify-center gap-2">
-                        <span>Initialize Data</span>
-                        <svg id="st-spinner"
-                            class="animate-spin -ml-1 mr-2 h-4 w-4 text-white dark:text-zinc-900 hidden"
-                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
-                            </circle>
-                            <path class="opacity-75" fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                            </path>
-                        </svg>
                     </button>
                 </div>
             </div>
 
-            <p id="st-error-msg" class="text-red-500 text-xs mt-4 text-center hidden"></p>
+            <p id="st-error-msg" class="text-red-500 text-xs mt-4 text-center hidden flex-shrink-0"></p>
         </div>
     </div>
 
@@ -814,7 +797,7 @@
 
         initStars();
 
-        // Sensor Tower Scraper Logic
+        // Search & Sensor Tower Logic
         function closeSTModal() {
             const modal = document.getElementById('st-modal');
             modal.style.opacity = '0';
@@ -823,156 +806,177 @@
             }, 300);
         }
 
-        async function fetchSTData() {
-            const urlInput = document.getElementById('st-url-input').value.trim();
-            const errorMsg = document.getElementById('st-error-msg');
-            const btn = document.getElementById('st-fetch-btn');
-            const spinner = document.getElementById('st-spinner');
+        let searchTimeout;
+        const searchInput = document.getElementById('app-search-input');
+        const searchResults = document.getElementById('search-results');
+        const searchSpinner = document.getElementById('search-spinner');
+        const stErrorMsg = document.getElementById('st-error-msg');
 
-            if (!urlInput || (!urlInput.includes('sensortower.com') && !urlInput.includes('play.google.com'))) {
-                errorMsg.textContent = "Please enter a valid Sensor Tower or Google Play URL.";
-                errorMsg.classList.remove('hidden');
-                return;
-            }
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                const term = e.target.value.trim();
+                clearTimeout(searchTimeout);
 
-            errorMsg.classList.add('hidden');
-            spinner.classList.remove('hidden');
-            btn.disabled = true;
+                if (term.length < 3) {
+                    searchResults.innerHTML = '';
+                    stErrorMsg.classList.add('hidden');
+                    return;
+                }
+
+                searchTimeout = setTimeout(() => {
+                    performSearch(term);
+                }, 500);
+            });
+        }
+
+        async function performSearch(term) {
+            searchResults.innerHTML = '';
+            stErrorMsg.classList.add('hidden');
+            searchSpinner.classList.remove('hidden');
 
             try {
-                let os = 'android';
-                let appId = null;
-                let country = 'US';
+                // iTunes API supports CORS, but in case of file:// origins, using codetabs proxy
+                const itunesUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=software&limit=5`;
+                const proxyUrl = `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(itunesUrl)}`;
 
-                if (urlInput.includes('play.google.com')) {
-                    // Extract from play store URL directly using regex for id and gl params
-                    const match = urlInput.match(/[?&]id=([^&]+)/);
-                    if (!match) throw new Error("Could not extract package ID from Google Play URL.");
-                    appId = match[1];
-                    country = (urlInput.match(/[?&]gl=([A-Za-z]+)/) || [])[1] || 'US';
-                } else {
-                    // Original Sensor Tower URL parser
-                    os = urlInput.toLowerCase().includes('ios') ? 'ios' : 'android';
-                    const match = urlInput.match(/\/overview\/(?:[^\/]+\/)?([^\/?]+)/);
-                    if (!match) throw new Error("Could not extract App ID from URL");
-                    appId = match[1];
-                    country = (urlInput.match(/\?country=([A-Za-z]+)/) || [])[1] || 'US';
+                const res = await fetch(proxyUrl);
+                if (!res.ok) throw new Error("Search proxy failed");
+                let data = await res.json();
+
+                // If codetabs proxy fails to parse or returns string, parse it
+                if (typeof data === 'string') {
+                    try { data = JSON.parse(data); } catch (e) { }
                 }
 
-                // Sensor Tower API Endpoint
+                searchSpinner.classList.add('hidden');
+
+                if (data.results && data.results.length > 0) {
+                    data.results.forEach(app => {
+                        const div = document.createElement('div');
+                        div.className = 'flex items-center gap-3 p-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg cursor-pointer transition-colors border border-transparent hover:border-zinc-200 dark:hover:border-zinc-700 group';
+                        div.onclick = () => fetchAppDetails(app.trackId, 'ios');
+
+                        div.innerHTML = `
+                            <img src="${app.artworkUrl100}" class="w-12 h-12 rounded-xl object-cover shadow-sm border border-zinc-200 dark:border-zinc-800 flex-shrink-0" alt="Icon">
+                            <div class="flex-1 min-w-0">
+                                <h4 class="text-sm font-bold text-zinc-900 dark:text-zinc-100 truncate">${app.trackName}</h4>
+                                <p class="text-xs font-semibold text-zinc-500 dark:text-zinc-400 truncate mt-0.5 uppercase tracking-wide">${app.artistName}</p>
+                            </div>
+                            <svg class="w-4 h-4 text-zinc-400 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        `;
+                        searchResults.appendChild(div);
+                    });
+                } else {
+                    searchResults.innerHTML = `<p class="text-sm text-zinc-500 text-center py-4">No results found.</p>`;
+                }
+            } catch (err) {
+                console.error(err);
+                searchSpinner.classList.add('hidden');
+                stErrorMsg.textContent = "Error searching. Please try again.";
+                stErrorMsg.classList.remove('hidden');
+            }
+        }
+
+        async function fetchAppDetails(appId, os = 'ios') {
+            searchResults.innerHTML = '';
+            searchInput.value = '';
+            stErrorMsg.classList.add('hidden');
+            searchSpinner.classList.remove('hidden');
+
+            try {
+                const country = 'US';
                 const stApiUrl = `https://app.sensortower.com/api/${os}/apps/${appId}?country=${country}`;
 
-                // Using Codetabs as a stable CORS proxy that successfully bypasses SensorTower's Cloudflare
                 const res = await fetch(`https://api.codetabs.com/v1/proxy/?quest=${stApiUrl}`);
-                if (!res.ok) throw new Error("Failed to connect to API proxy.");
+                if (!res.ok) throw new Error("Failed to connect to ST API proxy.");
                 let st = await res.json();
 
-                // If it fails on Android, try iOS fallback
                 if (!st || st.error || !st.name) {
-                    os = os === 'android' ? 'ios' : 'android';
-                    const fallbackRes = await fetch(`https://api.codetabs.com/v1/proxy/?quest=https://app.sensortower.com/api/${os}/apps/${appId}?country=${country}`);
-                    if (fallbackRes.ok) {
-                        const fbData = await fallbackRes.json();
-                        if (fbData && !fbData.error && fbData.name) {
-                            st = fbData;
+                    throw new Error("Invalid response from Sensor Tower.");
+                }
+
+                // Populate fields
+                if (st.name) document.getElementById('game-title').value = st.name;
+                if (st.icon_url) {
+                    document.getElementById('game-icon-url').value = st.icon_url;
+                    document.getElementById('game-icon-preview').src = st.icon_url;
+                }
+
+                if (st.top_countries && st.top_countries.length > 0) {
+                    document.getElementById('top-countries').value = st.top_countries.join(', ');
+                }
+
+                if (st.installs) {
+                    document.getElementById('installs').value = st.installs;
+                } else if (st.worldwide_last_month_downloads && st.worldwide_last_month_downloads.value) {
+                    let dl = st.worldwide_last_month_downloads.value;
+                    if (dl >= 1000000) dl = (dl / 1000000).toFixed(1) + "M+";
+                    else if (dl >= 1000) dl = (dl / 1000).toFixed(0) + "K+";
+                    document.getElementById('installs').value = dl;
+                }
+
+                if (st.worldwide_last_month_revenue && st.worldwide_last_month_revenue.value) {
+                    let rev = st.worldwide_last_month_revenue.value / 100;
+                    if (rev >= 1000000) rev = "$" + (rev / 1000000).toFixed(1) + "M";
+                    else if (rev >= 1000) rev = "$" + (rev / 1000).toFixed(0) + "K";
+                    else rev = "$" + rev;
+                    document.getElementById('mrr').value = rev;
+                }
+
+                if (st.current_version) document.getElementById('current-version').value = st.current_version;
+                if (st.recent_release_date) document.getElementById('last-updated').value = new Date(st.recent_release_date).toISOString().split('T')[0];
+                if (st.publisher_country) document.getElementById('publisher-country').value = st.publisher_country;
+                if (st.country_release_date) document.getElementById('country-release').value = new Date(st.country_release_date).toISOString().split('T')[0];
+                if (st.worldwide_release_date) document.getElementById('worldwide-release').value = new Date(st.worldwide_release_date).toISOString().split('T')[0];
+                if (st.minimum_os_version) document.getElementById('min-os').value = st.minimum_os_version;
+                if (st.file_size) document.getElementById('file-size').value = st.file_size;
+
+                if (st.top_in_app_purchases && Object.values(st.top_in_app_purchases).length > 0) {
+                    document.getElementById('iap-range').value = Object.values(st.top_in_app_purchases)[0];
+                }
+
+                if (st.description) {
+                    if (st.description.short_description) document.getElementById('short-desc').value = st.description.short_description;
+                    if (st.description.full_description) document.getElementById('full-desc').value = st.description.full_description.replace(/<br\s*\/?>/gi, '\n');
+                }
+
+                let mediaArr = [];
+                if (st.screenshots) {
+                    if (Array.isArray(st.screenshots.android)) mediaArr = st.screenshots.android;
+                    else if (Array.isArray(st.screenshots.ios)) mediaArr = st.screenshots.ios;
+                    else if (Array.isArray(st.screenshots.iphone)) mediaArr = st.screenshots.iphone;
+                    else if (st.screenshots.ios && Array.isArray(st.screenshots.ios.iphone)) mediaArr = st.screenshots.ios.iphone;
+                    else if (Array.isArray(st.screenshots.ipad)) mediaArr = st.screenshots.ipad;
+                }
+
+                if (mediaArr && mediaArr.length > 0) {
+                    const phoneOnly = mediaArr.slice(0, 6);
+                    const uniqueLinks = [];
+                    const seenClean = new Set();
+                    for (const link of phoneOnly) {
+                        const clean = typeof link === 'string' ? link.replace(/=s\d+.*|=w\d+.*|=h\d+.*/g, '') : null;
+                        if (clean && !seenClean.has(clean)) {
+                            seenClean.add(clean);
+                            uniqueLinks.push(link);
                         }
+                    }
+                    if (uniqueLinks.length > 0) {
+                        document.getElementById('media-urls').value = uniqueLinks.join(',\n');
+                        if (typeof updateMediaPreviews === 'function') updateMediaPreviews();
                     }
                 }
 
-                if (st && st.name) {
-                    // Populate Base Intel Header
-                    document.getElementById('game-title').value = st.name;
-                    if (st.icon_url) {
-                        document.getElementById('game-icon-url').value = st.icon_url;
-                        document.getElementById('game-icon-preview').src = st.icon_url;
-                    }
-
-                    if (st.top_countries && st.top_countries.length > 0) {
-                        document.getElementById('top-countries').value = st.top_countries.join(', ');
-                    }
-
-                    // Populate Revenue & Downloads
-                    if (st.installs) {
-                        document.getElementById('installs').value = st.installs;
-                    } else if (st.worldwide_last_month_downloads && st.worldwide_last_month_downloads.value) {
-                        let dl = st.worldwide_last_month_downloads.value;
-                        if (dl >= 1000000) dl = (dl / 1000000).toFixed(1) + "M+";
-                        else if (dl >= 1000) dl = (dl / 1000).toFixed(0) + "K+";
-                        document.getElementById('installs').value = dl;
-                    }
-
-                    if (st.worldwide_last_month_revenue && st.worldwide_last_month_revenue.value) {
-                        let rev = st.worldwide_last_month_revenue.value; // In cents usually -> $6K is 600,000 cents
-                        rev = rev / 100; // to dollars
-                        if (rev >= 1000000) rev = "$" + (rev / 1000000).toFixed(1) + "M";
-                        else if (rev >= 1000) rev = "$" + (rev / 1000).toFixed(0) + "K";
-                        else rev = "$" + rev;
-                        document.getElementById('mrr').value = rev;
-                    }
-
-                    // Release Details & Metadata
-                    if (st.current_version) document.getElementById('current-version').value = st.current_version;
-                    if (st.recent_release_date) document.getElementById('last-updated').value = new Date(st.recent_release_date).toISOString().split('T')[0];
-                    if (st.publisher_country) document.getElementById('publisher-country').value = st.publisher_country;
-                    if (st.country_release_date) document.getElementById('country-release').value = new Date(st.country_release_date).toISOString().split('T')[0];
-                    if (st.worldwide_release_date) document.getElementById('worldwide-release').value = new Date(st.worldwide_release_date).toISOString().split('T')[0];
-                    if (st.minimum_os_version) document.getElementById('min-os').value = st.minimum_os_version;
-                    if (st.file_size) document.getElementById('file-size').value = st.file_size;
-
-                    if (st.top_in_app_purchases && Object.values(st.top_in_app_purchases).length > 0) {
-                        document.getElementById('iap-range').value = Object.values(st.top_in_app_purchases)[0];
-                    }
-
-                    // Descriptions & Media
-                    if (st.description) {
-                        if (st.description.short_description) {
-                            document.getElementById('short-desc').value = st.description.short_description;
-                        }
-                        if (st.description.full_description) {
-                            // Convert some basic br tags to newlines
-                            const cleanDesc = st.description.full_description.replace(/<br\s*\/?>/gi, '\n');
-                            document.getElementById('full-desc').value = cleanDesc;
-                        }
-                    }
-
-                    if (st.screenshots && (st.screenshots.android || st.screenshots.ios)) {
-                        const mediaArr = st.screenshots.android || st.screenshots.ios;
-                        if (mediaArr && mediaArr.length > 0) {
-                            // Slice to 6 to avoid tablet duplicates (visually identical images but entirely unique CDN strings)
-                            const phoneOnly = mediaArr.slice(0, 6);
-                            const uniqueLinks = [];
-                            const seenClean = new Set();
-                            for (const link of phoneOnly) {
-                                // Strip Google Play sizing params
-                                const clean = link.replace(/=s\d+.*|=w\d+.*|=h\d+.*/g, '');
-                                if (!seenClean.has(clean)) {
-                                    seenClean.add(clean);
-                                    uniqueLinks.push(link);
-                                }
-                            }
-                            document.getElementById('media-urls').value = uniqueLinks.join(',\n');
-                            if (typeof updateMediaPreviews === 'function') updateMediaPreviews();
-                        }
-                    }
-
-                    // Set Platform checkboxes based on OS
-                    const actualOs = (st.os || os).toLowerCase();
-                    if (actualOs.includes('android')) document.getElementById('plat-and').checked = true;
-                    if (actualOs.includes('ios')) document.getElementById('plat-ios').checked = true;
-
-                } else {
-                    throw new Error("Invalid response format from proxy.");
-                }
+                const actualOs = (st.os || os).toLowerCase();
+                if (actualOs.includes('android')) document.getElementById('plat-and').checked = true;
+                if (actualOs.includes('ios')) document.getElementById('plat-ios').checked = true;
 
                 showToast("Sensor Tower data initialized!");
                 closeSTModal();
             } catch (err) {
                 console.error(err);
-                errorMsg.textContent = "Error fetching data. Check URL or try entering manually.";
-                errorMsg.classList.remove('hidden');
-            } finally {
-                spinner.classList.add('hidden');
-                btn.disabled = false;
+                searchSpinner.classList.add('hidden');
+                stErrorMsg.textContent = "Error fetching details. Try another game.";
+                stErrorMsg.classList.remove('hidden');
             }
         }
     </script>
