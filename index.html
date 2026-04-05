@@ -92,10 +92,23 @@
             font-family: monospace;
             font-size: 0.85em;
         }
+        
+        .ui-mention {
+            @apply bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 font-mono text-[0.9em] px-1.5 py-0.5 rounded cursor-pointer transition-colors relative shadow-sm;
+        }
+        .ui-mention:hover::after {
+            content: attr(data-purpose);
+            @apply absolute bottom-full left-1/2 -translate-x-1/2 mb-1 w-max max-w-xs bg-zinc-900 border border-zinc-700 text-white text-xs px-2 py-1.5 rounded shadow-lg z-[99999] whitespace-normal pointer-events-none;
+        }
     </style>
 </head>
 
 <body class="antialiased min-h-screen">
+
+    <!-- MENTION ENGINE POPUP -->
+    <div id="mention-popup"
+        class="hidden absolute bg-white dark:bg-[#18181b] border border-zinc-200 dark:border-zinc-800 rounded-md shadow-xl z-[150] max-h-48 overflow-y-auto min-w-[200px]">
+    </div>
 
     <!-- SENSOR TOWER INITIALIZER MODAL -->
     <div id="st-modal"
@@ -310,13 +323,15 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                         <div class="md:col-span-2">
                             <label class="label-text">Short Description <span class="text-red-500">*</span></label>
-                            <input type="text" id="short-desc" class="input-field"
-                                placeholder="1-2 sentences summarizing the game..." required>
+                            <div contenteditable="true" id="short-desc"
+                                class="input-field cursor-text empty:before:content-[attr(data-placeholder)] empty:before:text-[#a1a1aa] empty:before:italic"
+                                data-placeholder="1-2 sentences summarizing the game..." required="true"></div>
                         </div>
                         <div class="md:col-span-2">
                             <label class="label-text">Full Description</label>
-                            <textarea id="full-desc" rows="4" class="input-field resize-y text-sm"
-                                placeholder="Full store description..."></textarea>
+                            <div contenteditable="true" id="full-desc"
+                                class="input-field resize-y text-sm min-h-[100px] overflow-auto cursor-text empty:before:content-[attr(data-placeholder)] empty:before:text-[#a1a1aa] empty:before:italic"
+                                data-placeholder="Full store description..."></div>
                         </div>
                         <div class="md:col-span-2">
                             <label class="label-text">Screenshots & Media (Comma-separated URLs)</label>
@@ -396,8 +411,10 @@
                                 <div class="flex items-center gap-2 relative group micro-item">
                                     <span
                                         class="text-zinc-400 dark:text-zinc-600 text-xs font-mono font-medium loop-num">1.</span>
-                                    <input type="text" class="input-field py-2 text-sm flex-1 loop-input micro-input"
-                                        placeholder="e.g. Merge 2 units" required>
+                                    <div contenteditable="true"
+                                        class="input-field py-2 text-sm flex-1 loop-input micro-input cursor-text empty:before:content-[attr(data-placeholder)] empty:before:text-[#a1a1aa] empty:before:italic whitespace-nowrap overflow-hidden"
+                                        data-placeholder="e.g. Merge 2 units" required="true"
+                                        onkeydown="if(event.key==='Enter') event.preventDefault()"></div>
                                 </div>
                             </div>
                             <button type="button" onclick="addLoopItem('micro')"
@@ -422,8 +439,10 @@
                                 <div class="flex items-center gap-2 relative group macro-item">
                                     <span
                                         class="text-zinc-400 dark:text-zinc-600 text-xs font-mono font-medium loop-num">1.</span>
-                                    <input type="text" class="input-field py-2 text-sm flex-1 loop-input macro-input"
-                                        placeholder="e.g. Upgrade Castle" required>
+                                    <div contenteditable="true"
+                                        class="input-field py-2 text-sm flex-1 loop-input macro-input cursor-text empty:before:content-[attr(data-placeholder)] empty:before:text-[#a1a1aa] empty:before:italic whitespace-nowrap overflow-hidden"
+                                        data-placeholder="e.g. Upgrade Castle" required="true"
+                                        onkeydown="if(event.key==='Enter') event.preventDefault()"></div>
                                 </div>
                             </div>
                             <button type="button" onclick="addLoopItem('macro')"
@@ -445,9 +464,32 @@
                                 Ultimate Goal
                             </h3>
                             <div>
-                                <input type="text" id="ultimate-goal" class="input-field py-2 text-sm w-full"
-                                    placeholder="keep empty if no ultimate goal">
+                                <div contenteditable="true" id="ultimate-goal"
+                                    class="input-field py-2 text-sm w-full cursor-text empty:before:content-[attr(data-placeholder)] empty:before:text-[#a1a1aa] empty:before:italic whitespace-nowrap overflow-hidden"
+                                    data-placeholder="keep empty if no ultimate goal"
+                                    onkeydown="if(event.key==='Enter') event.preventDefault()"></div>
                             </div>
+                        </div>
+
+                        <!-- Gameplay UI Components -->
+                        <div
+                            class="space-y-3 bg-zinc-50 dark:bg-zinc-800/30 p-4 rounded-lg border border-zinc-200 dark:border-zinc-800">
+                            <h3
+                                class="text-xs font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-widest flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-teal-500"></span>
+                                Gameplay UI Components
+                            </h3>
+                            <div id="ui-loop-container" class="space-y-2">
+                                <!-- UI elements goes here -->
+                            </div>
+                            <button type="button" onclick="addLoopItem('ui')"
+                                class="w-full border border-dashed border-zinc-300 dark:border-zinc-700 rounded-md py-2.5 flex items-center justify-center gap-2 text-zinc-400 hover:border-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors text-[10px] font-semibold uppercase tracking-widest mt-2">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                                Add Gameplay UI
+                            </button>
                         </div>
                     </div>
                     <div class="mt-4 space-y-4">
@@ -466,15 +508,17 @@
 
                         <div>
                             <label class="label-text">The Hook (The Juice) <span class="text-red-500">*</span></label>
-                            <textarea id="hook-juice" rows="2" class="input-field resize-none"
-                                placeholder="Visual/Auditory satisfaction triggers..." required></textarea>
+                            <div contenteditable="true" id="hook-juice"
+                                class="input-field min-h-[60px] cursor-text empty:before:content-[attr(data-placeholder)] empty:before:text-[#a1a1aa] empty:before:italic"
+                                data-placeholder="Visual/Auditory satisfaction triggers..." required="true"></div>
                         </div>
 
                         <div>
                             <label class="label-text">Onboarding / FTUE <span class="text-red-500">*</span></label>
-                            <textarea id="onboarding-ftue" rows="2" class="input-field resize-none"
-                                placeholder="How does it teach the player? (e.g., Forced tutorial, glowing finger, trial by fire)..."
-                                required></textarea>
+                            <div contenteditable="true" id="onboarding-ftue"
+                                class="input-field min-h-[60px] cursor-text empty:before:content-[attr(data-placeholder)] empty:before:text-[#a1a1aa] empty:before:italic"
+                                data-placeholder="How does it teach the player? (e.g., Forced tutorial, glowing finger, trial by fire)..."
+                                required="true"></div>
                         </div>
 
                         <!-- Retention Triggers -->
@@ -598,19 +642,7 @@
                             </label>
                         </div>
                         <div id="ads-loop-container" class="space-y-2">
-                            <div class="flex items-center gap-2 relative group ads-item">
-                                <span
-                                    class="text-zinc-400 dark:text-zinc-600 text-xs font-mono font-medium loop-num">1.</span>
-                                <input type="text" class="input-field py-2 text-sm flex-1 loop-input ads-input"
-                                    placeholder="e.g. Rewarded Ad after level complete" required disabled>
-                                <button type="button" onclick="this.parentElement.remove(); updateLoopNumbers('ads')"
-                                    class="absolute -right-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-full p-0.5 text-zinc-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M6 18L18 6M6 6l12 12"></path>
-                                    </svg>
-                                </button>
-                            </div>
+                            <!-- Adds populated dynamically -->
                         </div>
                         <button type="button" onclick="addLoopItem('ads')"
                             class="w-full border border-dashed border-zinc-300 dark:border-zinc-700 rounded-md py-2.5 flex items-center justify-center gap-2 text-zinc-400 hover:border-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors text-[10px] font-semibold uppercase tracking-widest mt-2">
@@ -684,9 +716,10 @@
                     <div>
                         <label class="label-text">Actionable Takeaway (Why Do We Care?) <span
                                 class="text-red-500">*</span></label>
-                        <textarea id="actionable-takeaway" rows="3" class="input-field resize-none text-sm"
-                            placeholder="What one mechanic, UI trick, or monetization strategy are we stealing from this for our own prototypes?"
-                            required></textarea>
+                        <div contenteditable="true" id="actionable-takeaway"
+                            class="input-field text-sm min-h-[80px] cursor-text empty:before:content-[attr(data-placeholder)] empty:before:text-[#a1a1aa] empty:before:italic"
+                            data-placeholder="What one mechanic, UI trick, or monetization strategy are we stealing from this for our own prototypes?"
+                            required="true"></div>
                     </div>
                     <div>
                         <label class="label-text mb-3">Game Design Rating <span class="text-red-500">*</span></label>
@@ -701,8 +734,9 @@
                     </div>
                     <div>
                         <label class="label-text">Final Quote <span class="text-red-500">*</span></label>
-                        <textarea id="final-quote" rows="3" class="input-field resize-none text-center italic"
-                            placeholder="One killer line that sums up this game's design..." required></textarea>
+                        <div contenteditable="true" id="final-quote"
+                            class="input-field text-center italic min-h-[80px] cursor-text empty:before:content-[attr(data-placeholder)] empty:before:text-[#a1a1aa] empty:before:italic"
+                            data-placeholder="One killer line that sums up this game's design..." required="true"></div>
                     </div>
                 </div>
             </div>
@@ -768,20 +802,157 @@
 
     <script>
         function addLoopItem(type) {
+            if (type === 'ads') {
+                addAdPlacementItem();
+                return;
+            }
+
             const container = document.getElementById(`${type}-loop-container`);
             const items = container.querySelectorAll(`.${type}-item`);
             const num = items.length + 1;
 
             const div = document.createElement('div');
-            div.className = `flex items-center gap-2 relative group animate-in slide-in-from-top-2 duration-300 ${type}-item`;
-            div.innerHTML = `
-                <span class="text-zinc-400 dark:text-zinc-600 text-xs font-mono font-medium loop-num">${num}.</span>
-                <input type="text" class="input-field py-2 text-sm flex-1 loop-input ${type}-input" placeholder="Next step..." required>
-                <button type="button" onclick="this.parentElement.remove(); updateLoopNumbers('${type}')" class="absolute -right-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-full p-0.5 text-zinc-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+
+            if (type === 'ui') {
+                div.className = `grid grid-cols-[auto_120px_1fr_auto] items-center gap-2 relative group animate-in slide-in-from-top-2 duration-300 ui-item`;
+                div.innerHTML = `
+                    <span class="text-zinc-400 dark:text-zinc-600 text-xs font-mono font-medium loop-num">${num}.</span>
+                    <input type="text" class="input-field py-2 text-sm loop-input ui-title-input font-medium" placeholder="UI element name" oninput="updateUIDropdowns()" required>
+                    <input type="text" class="input-field py-2 text-sm loop-input ui-purpose-input" placeholder="Purpose in game design" required>
+                    <button type="button" onclick="this.parentElement.remove(); updateLoopNumbers('ui'); updateUIDropdowns();" class="absolute -right-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-full p-0.5 text-zinc-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                    <div class="w-4"></div> <!-- Spacer for delete btn hover -->
+                `;
+            } else {
+                div.className = `flex items-center gap-2 relative group animate-in slide-in-from-top-2 duration-300 ${type}-item`;
+                div.innerHTML = `
+                    <span class="text-zinc-400 dark:text-zinc-600 text-xs font-mono font-medium loop-num">${num}.</span>
+                    <div contenteditable="true" class="input-field py-2 text-sm flex-1 loop-input ${type}-input cursor-text empty:before:content-[attr(data-placeholder)] empty:before:text-[#a1a1aa] empty:before:italic whitespace-nowrap overflow-hidden" data-placeholder="Next step..." required="true" onkeydown="if(event.key==='Enter') event.preventDefault()"></div>
+                    <button type="button" onclick="this.parentElement.remove(); updateLoopNumbers('${type}')" class="absolute -right-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-full p-0.5 text-zinc-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                `;
+            }
+            container.appendChild(div);
+        }
+
+        function isBannerAddedAndNot(excludeDiv) {
+            const items = document.querySelectorAll('.ads-item');
+            for (const item of items) {
+                if (item !== excludeDiv && item.dataset.type === 'Banner Ad') {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function updateAdSelects() {
+            const bannerUsed = Array.from(document.querySelectorAll('.ads-item')).some(div => div.dataset.type === 'Banner Ad');
+            const selects = document.querySelectorAll('.ad-type-select');
+            selects.forEach(select => {
+                const div = select.closest('.ads-item');
+                if (div.dataset.type === 'Banner Ad') return;
+
+                let bannerOption = select.querySelector('option[value="Banner Ad"]');
+                if (bannerUsed) {
+                    if (bannerOption) bannerOption.remove();
+                } else {
+                    if (!bannerOption) {
+                        select.insertAdjacentHTML('beforeend', `<option value="Banner Ad">Banner Ad</option>`);
+                    }
+                }
+            });
+        }
+
+        function updateUIDropdowns() {
+            const uiTitles = Array.from(document.querySelectorAll('.ui-title-input'))
+                .map(el => el.value.trim())
+                .filter(val => val !== '');
+            const selects = document.querySelectorAll('.ui-reference-select');
+            selects.forEach(select => {
+                const currentValue = select.value;
+                select.innerHTML = '<option value="" disabled selected>Select UI...</option>' +
+                    uiTitles.map(t => `<option value="${t}">${t}</option>`).join('');
+                if (uiTitles.includes(currentValue)) {
+                    select.value = currentValue;
+                }
+            });
+        }
+
+        function renderAdPlacement(div, type) {
+            const numText = div.querySelector('.loop-num')?.innerText || '1.';
+            const numSpanHtml = `<span class="text-zinc-400 dark:text-zinc-600 text-xs font-mono font-medium loop-num">${numText}</span>`;
+
+            const deleteBtnHtml = `
+                <button type="button" onclick="this.parentElement.remove(); updateLoopNumbers('ads'); updateAdSelects();" class="absolute -right-2 -top-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-full p-1 text-zinc-400 hover:text-red-500 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity z-10">
                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             `;
+
+            const bannerDisabled = isBannerAddedAndNot(div) ? 'disabled' : '';
+
+            const selectHtml = `
+                <select class="input-field !py-1.5 text-sm !w-auto min-w-[120px] flex-shrink-0 ad-type-select bg-zinc-100 dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700 font-semibold text-blue-600 dark:text-blue-400" onchange="handleAdTypeChange(this)" required>
+                    <option value="Interstitial Ad" ${type === 'Interstitial Ad' ? 'selected' : ''}>Interstitial Ad</option>
+                    <option value="Rewarded Ad" ${type === 'Rewarded Ad' ? 'selected' : ''}>Rewarded Ad</option>
+                    ${bannerDisabled && type !== 'Banner Ad' ? '' : `<option value="Banner Ad" ${type === 'Banner Ad' ? 'selected' : ''}>Banner Ad</option>`}
+                </select>
+            `;
+
+            if (type === 'Interstitial Ad') {
+                div.innerHTML = `
+                    ${numSpanHtml}
+                    ${selectHtml}
+                    <span class="text-sm font-medium text-zinc-600 dark:text-zinc-400 flex-shrink-0">appears when</span>
+                    <div contenteditable="true" class="input-field py-1.5 text-sm flex-1 ad-text-input cursor-text empty:before:content-[attr(data-placeholder)] empty:before:text-[#a1a1aa] empty:before:italic whitespace-nowrap overflow-hidden" data-placeholder="e.g. level fails" required="true" onkeydown="if(event.key==='Enter') event.preventDefault()"></div>
+                    ${deleteBtnHtml}
+                `;
+            } else if (type === 'Rewarded Ad') {
+                div.innerHTML = `
+                    ${numSpanHtml}
+                    <span class="text-sm font-medium text-zinc-600 dark:text-zinc-400 flex-shrink-0">Clicking</span>
+                    <select class="input-field !py-1.5 text-sm !w-auto min-w-[120px] flex-shrink-0 ui-reference-select bg-zinc-100 dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700 font-semibold text-blue-600 dark:text-blue-400" required>
+                    </select>
+                    <span class="text-sm font-medium text-zinc-600 dark:text-zinc-400 flex-shrink-0">plays</span>
+                    ${selectHtml}
+                    <span class="text-sm font-medium text-zinc-600 dark:text-zinc-400 flex-shrink-0">which grants you</span>
+                    <div class="w-full basis-full"></div>
+                    <div contenteditable="true" class="input-field py-1.5 text-sm w-full ad-text-input cursor-text empty:before:content-[attr(data-placeholder)] empty:before:text-[#a1a1aa] empty:before:italic whitespace-nowrap overflow-hidden" data-placeholder="e.g. extra life" required="true" onkeydown="if(event.key==='Enter') event.preventDefault()"></div>
+                    ${deleteBtnHtml}
+                `;
+                setTimeout(() => updateUIDropdowns(), 0);
+            } else if (type === 'Banner Ad') {
+                div.innerHTML = `
+                    ${numSpanHtml}
+                    ${selectHtml}
+                    <span class="text-sm font-medium text-zinc-600 dark:text-zinc-400 flex-shrink-0">exists in this game</span>
+                    ${deleteBtnHtml}
+                `;
+            }
+        }
+
+        function handleAdTypeChange(select) {
+            const div = select.closest('.ads-item');
+            const newType = select.value;
+            div.dataset.type = newType;
+            renderAdPlacement(div, newType);
+            updateAdSelects();
+        }
+
+        function addAdPlacementItem() {
+            const container = document.getElementById('ads-loop-container');
+            const items = container.querySelectorAll('.ads-item');
+            const num = items.length + 1;
+
+            const div = document.createElement('div');
+            div.className = `flex flex-wrap items-center gap-2 relative group animate-in slide-in-from-top-2 duration-300 ads-item p-2.5 bg-zinc-50 dark:bg-zinc-800/50 rounded-md border border-zinc-200 dark:border-zinc-800`;
+            div.dataset.type = 'Interstitial Ad';
+            div.innerHTML = `<span class="loop-num hidden">${num}.</span>`;
+
             container.appendChild(div);
+            renderAdPlacement(div, 'Interstitial Ad');
+            updateAdSelects();
         }
 
         function updateLoopNumbers(type) {
@@ -797,10 +968,10 @@
             const adsSection = document.getElementById('ads-section');
             if (val === 'Ad-Driven' || val === 'Hybrid (Ads + IAP)') {
                 adsSection.classList.remove('hidden');
-                document.querySelectorAll('.ads-input').forEach(el => el.disabled = false);
+                document.querySelectorAll('.ads-input, .ad-type-select, .ad-text-input, .ui-reference-select').forEach(el => el.disabled = false);
             } else {
                 adsSection.classList.add('hidden');
-                document.querySelectorAll('.ads-input').forEach(el => el.disabled = true);
+                document.querySelectorAll('.ads-input, .ad-type-select, .ad-text-input, .ui-reference-select').forEach(el => el.disabled = true);
             }
         }
 
@@ -1066,7 +1237,28 @@
             }
         }
 
+        function formatUIReferences(text) {
+            if (!text) return text;
+            return text.replace(/@\{([^}]+)\}/g, '<code style="background: #f4f4f5 !important; padding: 2px 4px; border-radius: 3px; font-family: monospace; font-size: 0.9em; color: #ea580c; border: 1px solid #e5e7eb;">$1</code>')
+                .replace(/@([a-zA-Z0-9_-]+)/g, '<code style="background: #f4f4f5 !important; padding: 2px 4px; border-radius: 3px; font-family: monospace; font-size: 0.9em; color: #ea580c; border: 1px solid #e5e7eb;">$1</code>');
+        }
+
         function generateReport() {
+            // validate required contenteditables
+            let valid = true;
+            document.querySelectorAll('[contenteditable="true"][required="true"]').forEach(el => {
+                if (el.innerText.trim() === '') {
+                    el.classList.add('border-red-500', 'dark:border-red-500');
+                    valid = false;
+                } else {
+                    el.classList.remove('border-red-500', 'dark:border-red-500');
+                }
+            });
+            if (!valid) {
+                showToast("Please fill all required highlighted fields.");
+                return;
+            }
+
             const form = document.getElementById('report-form');
             if (!form.checkValidity()) { form.reportValidity(); return; }
             if (!document.getElementById('plat-ios').checked && !document.getElementById('plat-and').checked && !document.getElementById('plat-web').checked) {
@@ -1105,20 +1297,55 @@
                 storeBadges.innerHTML += `<a href="${iosUrl || '#'}" target="_blank" style="display:inline-block;"><img src="https://i.ibb.co/G3MBtbky/Get-it-on-app-store.png" style="height:32px; width:auto;" alt="Download on the App Store"></a>`;
             }
 
+            // Helper to get value from either input or contenteditable div
+            const getVal = (el) => {
+                if (el.value !== undefined) return el.value;
+                if (!el.innerText) return '';
+                // Clone the node to correctly map HTML mentions to @{Title} format for the exporter
+                const clone = el.cloneNode(true);
+                clone.querySelectorAll('.ui-mention').forEach(span => {
+                    const title = span.innerText.replace(/^@/, '');
+                    span.innerText = '@{' + title + '}';
+                });
+                return clone.innerText || '';
+            };
+
             // Build Loops
-            const microInputs = Array.from(document.querySelectorAll('.micro-input')).map(el => el.value).filter(val => val.trim() !== '');
+            const microInputs = Array.from(document.querySelectorAll('.micro-input')).map(el => formatUIReferences(getVal(el))).filter(val => val.trim() !== '');
             const microHtml = microInputs.length > 0 ? '<div style="margin-top:2px; padding-left:16px;">' + microInputs.map((val, idx) => `<div style="margin-bottom:2px; display:flex; gap:6px;"> <span style="color:#2563eb; font-weight:600;">${idx + 1}.</span> <span>${val}</span></div>`).join('') + '</div>' : 'N/A';
 
-            const macroInputs = Array.from(document.querySelectorAll('.macro-input')).map(el => el.value).filter(val => val.trim() !== '');
+            const macroInputs = Array.from(document.querySelectorAll('.macro-input')).map(el => formatUIReferences(getVal(el))).filter(val => val.trim() !== '');
             const macroHtml = macroInputs.length > 0 ? '<div style="margin-top:2px; padding-left:16px;">' + macroInputs.map((val, idx) => `<div style="margin-bottom:2px; display:flex; gap:6px;"> <span style="color:#9333ea; font-weight:600;">${idx + 1}.</span> <span>${val}</span></div>`).join('') + '</div>' : 'N/A';
 
-            const adsInputs = Array.from(document.querySelectorAll('.ads-input')).map(el => el.value).filter(val => val.trim() !== '');
-            const adsHtml = adsInputs.map((val, idx) => `&bull; ${val}`).join('<br>');
+            const uiItems = Array.from(document.querySelectorAll('.ui-item')).map(el => {
+                const t = getVal(el.querySelector('.ui-title-input')).trim();
+                const p = getVal(el.querySelector('.ui-purpose-input')).trim();
+                return { title: t, purpose: formatUIReferences(p) };
+            }).filter(u => u.title !== '');
+            const uiHtml = uiItems.length > 0 ? '<div style="margin-top:2px; padding-left:16px;">' + uiItems.map((u, idx) => `<div style="margin-bottom:2px; display:flex; gap:6px;"> <span style="color:#14b8a6; font-weight:600;">${idx + 1}.</span> <span><strong>${u.title}</strong>: ${u.purpose}</span></div>`).join('') + '</div>' : 'N/A';
 
-            const ultimateGoal = document.getElementById('ultimate-goal').value.trim();
+            const adsHtml = Array.from(document.querySelectorAll('.ads-item')).map((div) => {
+                const type = div.dataset.type;
+                if (type === 'Banner Ad') {
+                    return `&bull; <strong>Banner Ad</strong> exists in this game.`;
+                } else if (type === 'Interstitial Ad') {
+                    const txt = formatUIReferences(getVal(div.querySelector('.ad-text-input')).trim());
+                    return `&bull; <strong>Interstitial Ad</strong> appears when ${txt}.`;
+                } else if (type === 'Rewarded Ad') {
+                    const uiRef = formatUIReferences(div.querySelector('.ui-reference-select').value);
+                    const txt = formatUIReferences(getVal(div.querySelector('.ad-text-input')).trim());
+                    return `&bull; Clicking <strong>${uiRef}</strong> plays <strong>Rewarded Ad</strong> which grants you ${txt}.`;
+                }
+                return '';
+            }).filter(val => val !== '').join('<br>');
+
+            const ultimateGoal = formatUIReferences(getVal(document.getElementById('ultimate-goal')).trim());
+            const fullDesc = formatUIReferences(getVal(document.getElementById('full-desc')));
+            const hookJuice = formatUIReferences(getVal(document.getElementById('hook-juice')));
+            const onboardingFtue = formatUIReferences(getVal(document.getElementById('onboarding-ftue')));
+            const actionableTakeaway = formatUIReferences(getVal(document.getElementById('actionable-takeaway')));
 
             const iconUrl = document.getElementById('game-icon-url').value;
-            const fullDesc = document.getElementById('full-desc').value;
             const rawMedia = document.getElementById('media-urls').value.split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
             const mediaLinks = [];
             const mediaSeen = new Set();
@@ -1165,7 +1392,7 @@
                         </div>
                     </div>
 
-                    <p style="margin:4px 0;"><strong>Hook:</strong> ${document.getElementById('short-desc').value}</p>
+                    <p style="margin:4px 0;"><strong>Hook:</strong> ${formatUIReferences(getVal(document.getElementById('short-desc')))}</p>
                     ${fullDesc ? `<p style="margin:8px 0; font-size:9pt; color:#444; line-height:1.4;"><strong>Description:</strong> ${fullDesc.substring(0, 300)}${fullDesc.length > 300 ? '...' : ''}</p>` : ''}
                     ${mediaLinks.length > 0 ? `<div style="margin:12px 0 8px 0; font-size:9pt;"><strong>Screenshots & Media:</strong><div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;">${mediaLinks.slice(0, 6).map(l => `<img src="${l}" style="height:110px; border-radius:6px; object-fit:cover; border:1px solid #e5e7eb; box-shadow:0 1px 2px rgba(0,0,0,0.05);">`).join('')}</div></div>` : ''}
                 </div>
@@ -1176,8 +1403,9 @@
                     <div style="margin:8px 0;"><strong>Micro Loop:</strong> ${microHtml}</div>
                     <div style="margin:8px 0;"><strong>Macro Loop:</strong> ${macroHtml}</div>
                     ${ultimateGoal ? `<div style="margin:8px 0;"><strong>Ultimate Goal:</strong> ${ultimateGoal}</div>` : ''}
-                    <div style="margin:8px 0 4px 0;"><strong>The Juice:</strong> ${document.getElementById('hook-juice').value}</div>
-                    <div style="margin:8px 0 4px 0;"><strong>FTUE (Onboarding):</strong> ${document.getElementById('onboarding-ftue').value}</div>
+                    ${uiHtml !== 'N/A' ? `<div style="margin:8px 0;"><strong>UI Components:</strong> ${uiHtml}</div>` : ''}
+                    <div style="margin:8px 0 4px 0;"><strong>The Juice:</strong> ${hookJuice}</div>
+                    <div style="margin:8px 0 4px 0;"><strong>FTUE (Onboarding):</strong> ${onboardingFtue}</div>
                     <div style="margin:8px 0 4px 0;"><strong>Retention Triggers:</strong> ${retentionStr}</div>
                 </div>
 
@@ -1207,12 +1435,12 @@
                 <div class="print-section" style="background:#f4f4f5 !important; padding:16px; border:1px solid #e4e4e7; border-radius:4px; margin-bottom: 24px;-webkit-print-color-adjust: exact; print-color-adjust: exact;">
                     <h3 style="font-size:11pt; font-weight:700; border-bottom:1px solid #ccc; padding-bottom:4px; margin:0 0 10px 0;">V. ACTIONABLE TAKEAWAY</h3>
                     <div style="margin-bottom:16px;">
-                        <p style="margin:4px 0 0 0; color:#111; font-weight:500;">${document.getElementById('actionable-takeaway').value}</p>
+                        <p style="margin:4px 0 0 0; color:#111; font-weight:500;">${getVal(document.getElementById('actionable-takeaway'))}</p>
                     </div>
 
                     <h3 style="font-size:11pt; font-weight:700; border-bottom:1px solid #ccc; padding-bottom:4px; margin:0 0 10px 0;">VI. FINAL VERDICT</h3>
                     <p style="font-size:20pt; letter-spacing:3px; margin:0 0 8px 0; color:#b45309;">${starsVisual} <span style="font-size:10pt; color:#666; letter-spacing:0;">(${rating}/10)</span></p>
-                    <p style="font-style:italic; color:#333; font-size:10.5pt; margin:0;">"${document.getElementById('final-quote').value}"</p>
+                    <p style="font-style:italic; color:#333; font-size:10.5pt; margin:0;">"${getVal(document.getElementById('final-quote'))}"</p>
                 </div>
             `;
 
@@ -1698,6 +1926,144 @@
             });
             html += '</table></div>';
             return html;
+        }
+
+        // --- MENTION ENGINE LOGIC ---
+        let mentionState = {
+            active: false,
+            query: '',
+            node: null,
+            offset: 0,
+            options: [],
+            selectedIndex: 0,
+            startOffset: 0
+        };
+
+        document.addEventListener('input', (e) => {
+            if (!e.target.isContentEditable) return;
+
+            const sel = window.getSelection();
+            if (!sel.rangeCount) return;
+            const range = sel.getRangeAt(0);
+            const node = range.startContainer;
+
+            if (node.nodeType === Node.TEXT_NODE) {
+                const text = node.textContent.slice(0, range.startOffset);
+                const match = text.match(/@([a-zA-Z0-9_\-\s]*)$/);
+
+                if (match) {
+                    const uiElements = Array.from(document.querySelectorAll('.ui-item')).map(el => {
+                        return {
+                            title: (el.querySelector('.ui-title-input').value || el.querySelector('.ui-title-input').innerText || '').trim(),
+                            purpose: (el.querySelector('.ui-purpose-input').value || el.querySelector('.ui-purpose-input').innerText || '').trim()
+                        };
+                    }).filter(u => u.title !== '');
+
+                    const query = match[1].toLowerCase();
+                    const filtered = uiElements.filter(u => u.title.toLowerCase().includes(query));
+
+                    if (filtered.length > 0) {
+                        mentionState = {
+                            active: true,
+                            query: match[1],
+                            node: node,
+                            startOffset: match.index,
+                            endOffset: range.startOffset,
+                            options: filtered,
+                            selectedIndex: 0
+                        };
+                        showMentionPopup(mentionState, range);
+                        return;
+                    }
+                }
+            }
+            closeMentionPopup();
+        });
+
+        function showMentionPopup(state, range) {
+            const popup = document.getElementById('mention-popup');
+            popup.innerHTML = state.options.map((opt, i) => `
+                <div class="p-2 cursor-pointer text-sm border-b border-zinc-100 dark:border-zinc-800 last:border-0 ${i === state.selectedIndex ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-white font-medium' : 'hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200'}" data-index="${i}" onmousedown="selectMention(${i}); event.preventDefault();">
+                    <div class="font-bold">${opt.title}</div>
+                    <div class="text-xs text-zinc-500 truncate" style="max-width:200px;">${opt.purpose || 'No description'}</div>
+                </div>
+            `).join('');
+
+            popup.classList.remove('hidden');
+
+            const rect = range.getBoundingClientRect();
+            const scrollTop = window.scrollY || document.documentElement.scrollTop;
+            const scrollLeft = window.scrollX || document.documentElement.scrollLeft;
+
+            popup.style.left = (rect.left + scrollLeft) + 'px';
+            popup.style.top = (rect.top + scrollTop - popup.offsetHeight - 5) + 'px';
+
+            if (rect.top - popup.offsetHeight < 0) {
+                // If it goes off top, render below
+                popup.style.top = (rect.bottom + scrollTop + 5) + 'px';
+            }
+        }
+
+        function closeMentionPopup() {
+            mentionState.active = false;
+            document.getElementById('mention-popup').classList.add('hidden');
+        }
+
+        function selectMention(index) {
+            mentionState.selectedIndex = index;
+            insertMention();
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (!mentionState.active) return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                mentionState.selectedIndex = (mentionState.selectedIndex + 1) % mentionState.options.length;
+                showMentionPopup(mentionState, window.getSelection().getRangeAt(0));
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                mentionState.selectedIndex = (mentionState.selectedIndex - 1 + mentionState.options.length) % mentionState.options.length;
+                showMentionPopup(mentionState, window.getSelection().getRangeAt(0));
+            } else if (e.key === 'Tab' || e.key === 'Enter') {
+                e.preventDefault();
+                insertMention();
+            } else if (e.key === 'Escape') {
+                closeMentionPopup();
+            }
+        }, true);
+
+        function insertMention() {
+            if (!mentionState.active) return;
+            const opt = mentionState.options[mentionState.selectedIndex];
+
+            const sel = window.getSelection();
+            const range = document.createRange();
+
+            range.setStart(mentionState.node, mentionState.startOffset);
+            range.setEnd(mentionState.node, mentionState.endOffset);
+            range.deleteContents();
+
+            const span = document.createElement('span');
+            span.className = 'ui-mention';
+            span.contentEditable = 'false';
+            span.setAttribute('data-purpose', opt.purpose || 'No description');
+            span.innerText = '@' + opt.title;
+
+            range.insertNode(span);
+
+            range.setStartAfter(span);
+            range.collapse(true);
+
+            const space = document.createTextNode('\u00A0');
+            range.insertNode(space);
+            range.setStartAfter(space);
+            range.collapse(true);
+
+            sel.removeAllRanges();
+            sel.addRange(range);
+
+            closeMentionPopup();
         }
     </script>
 </body>
