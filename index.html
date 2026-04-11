@@ -19,6 +19,7 @@
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/lib/marked.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <style type="text/tailwindcss">
         body {
             font-family: 'Inter', sans-serif;
@@ -408,7 +409,15 @@
                                 Micro Loop
                             </h3>
                             <div id="micro-loop-container" class="space-y-2">
-                                <div class="flex items-center gap-2 relative group micro-item">
+                                <div
+                                    class="flex items-center gap-2 relative group micro-item rounded-md bg-white dark:bg-transparent transition-colors">
+                                    <div
+                                        class="cursor-grab active:cursor-grabbing text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 drag-handle opacity-0 group-hover:opacity-100 transition-opacity p-0.5 -ml-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M4 8h16M4 16h16"></path>
+                                        </svg>
+                                    </div>
                                     <span
                                         class="text-zinc-400 dark:text-zinc-600 text-xs font-mono font-medium loop-num">1.</span>
                                     <div contenteditable="true"
@@ -436,7 +445,15 @@
                                 Macro Loop
                             </h3>
                             <div id="macro-loop-container" class="space-y-2">
-                                <div class="flex items-center gap-2 relative group macro-item">
+                                <div
+                                    class="flex items-center gap-2 relative group macro-item rounded-md bg-white dark:bg-transparent transition-colors">
+                                    <div
+                                        class="cursor-grab active:cursor-grabbing text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 drag-handle opacity-0 group-hover:opacity-100 transition-opacity p-0.5 -ml-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M4 8h16M4 16h16"></path>
+                                        </svg>
+                                    </div>
                                     <span
                                         class="text-zinc-400 dark:text-zinc-600 text-xs font-mono font-medium loop-num">1.</span>
                                     <div contenteditable="true"
@@ -825,8 +842,11 @@
                     <div class="w-4"></div> <!-- Spacer for delete btn hover -->
                 `;
             } else {
-                div.className = `flex items-center gap-2 relative group animate-in slide-in-from-top-2 duration-300 ${type}-item`;
+                div.className = `flex items-center gap-2 relative group animate-in slide-in-from-top-2 duration-300 ${type}-item rounded-md bg-white dark:bg-transparent transition-colors`;
                 div.innerHTML = `
+                    <div class="cursor-grab active:cursor-grabbing text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 drag-handle opacity-0 group-hover:opacity-100 transition-opacity p-0.5 -ml-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path></svg>
+                    </div>
                     <span class="text-zinc-400 dark:text-zinc-600 text-xs font-mono font-medium loop-num">${num}.</span>
                     <div contenteditable="true" class="input-field py-2 text-sm flex-1 loop-input ${type}-input cursor-text empty:before:content-[attr(data-placeholder)] empty:before:text-[#a1a1aa] empty:before:italic whitespace-nowrap overflow-hidden" data-placeholder="Next step..." required="true" onkeydown="if(event.key==='Enter') event.preventDefault()"></div>
                     <button type="button" onclick="this.parentElement.remove(); updateLoopNumbers('${type}')" class="absolute -right-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-full p-0.5 text-zinc-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity z-10">
@@ -1144,6 +1164,23 @@
 
         // Setup Drag & Drop
         document.addEventListener('DOMContentLoaded', () => {
+            // SortableJS init for loops
+            const initSortable = (id, type) => {
+                const el = document.getElementById(id);
+                if (el) {
+                    new Sortable(el, {
+                        animation: 250,
+                        handle: '.drag-handle',
+                        ghostClass: 'opacity-40',
+                        onEnd: function (evt) {
+                            updateLoopNumbers(type);
+                        }
+                    });
+                }
+            };
+            initSortable('micro-loop-container', 'micro');
+            initSortable('macro-loop-container', 'macro');
+
             const dropZone = document.getElementById('drop-zone');
             const fileInput = document.getElementById('img-file-input');
 
@@ -1310,6 +1347,20 @@
                 return clone.innerText || '';
             };
 
+            // Helper to get innerHTML from contenteditable divs (preserves line breaks)
+            const getHtmlVal = (el) => {
+                if (!el) return '';
+                const html = el.innerHTML || '';
+                if (!html || html === '<br>') return '';
+                // Convert @mentions to formatted references
+                const clone = el.cloneNode(true);
+                clone.querySelectorAll('.ui-mention').forEach(span => {
+                    const title = span.innerText.replace(/^@/, '');
+                    span.replaceWith('@{' + title + '}');
+                });
+                return clone.innerHTML || '';
+            };
+
             // Build Loops
             const microInputs = Array.from(document.querySelectorAll('.micro-input')).map(el => formatUIReferences(getVal(el))).filter(val => val.trim() !== '');
             const microHtml = microInputs.length > 0 ? '<div style="margin-top:2px; padding-left:16px;">' + microInputs.map((val, idx) => `<div style="margin-bottom:2px; display:flex; gap:6px;"> <span style="color:#2563eb; font-weight:600;">${idx + 1}.</span> <span>${val}</span></div>`).join('') + '</div>' : 'N/A';
@@ -1340,7 +1391,7 @@
             }).filter(val => val !== '').join('<br>');
 
             const ultimateGoal = formatUIReferences(getVal(document.getElementById('ultimate-goal')).trim());
-            const fullDesc = formatUIReferences(getVal(document.getElementById('full-desc')));
+            const fullDescHtml = formatUIReferences(getHtmlVal(document.getElementById('full-desc')));
             const hookJuice = formatUIReferences(getVal(document.getElementById('hook-juice')));
             const onboardingFtue = formatUIReferences(getVal(document.getElementById('onboarding-ftue')));
             const actionableTakeaway = formatUIReferences(getVal(document.getElementById('actionable-takeaway')));
@@ -1361,7 +1412,7 @@
             const retentionStr = retentionTags.length > 0 ? retentionTags.join(', ') : 'None explicitly mapped';
 
             let html = `
-                <div class="print-section" style="margin-bottom: 24px;">
+                <div class="print-section" style="margin-bottom: 24px; break-inside: auto;">
                     <h3 style="font-size:11pt; font-weight:700; border-bottom:1.5px solid #000; padding-bottom:4px; margin:0 0 10px 0;">I. CORE INTEL</h3>
                     
                     <div style="display:flex; align-items:start; gap:16px; margin-bottom: 12px;">
@@ -1393,8 +1444,8 @@
                     </div>
 
                     <p style="margin:4px 0;"><strong>Hook:</strong> ${formatUIReferences(getVal(document.getElementById('short-desc')))}</p>
-                    ${fullDesc ? `<p style="margin:8px 0; font-size:9pt; color:#444; line-height:1.4;"><strong>Description:</strong> ${fullDesc.substring(0, 300)}${fullDesc.length > 300 ? '...' : ''}</p>` : ''}
-                    ${mediaLinks.length > 0 ? `<div style="margin:12px 0 8px 0; font-size:9pt;"><strong>Screenshots & Media:</strong><div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;">${mediaLinks.slice(0, 6).map(l => `<img src="${l}" style="height:110px; border-radius:6px; object-fit:cover; border:1px solid #e5e7eb; box-shadow:0 1px 2px rgba(0,0,0,0.05);">`).join('')}</div></div>` : ''}
+                    ${fullDescHtml ? `<div style="margin:8px 0; font-size:9pt; color:#444; line-height:1.4;"><strong>Description:</strong><div style="margin-top:4px;">${fullDescHtml}</div></div>` : ''}
+                    ${mediaLinks.length > 0 ? `<div style="margin:12px 0 8px 0; font-size:9pt;"><strong>Screenshots & Media:</strong><div style="display:flex; flex-wrap:nowrap; gap:8px; margin-top:8px;">${mediaLinks.slice(0, 6).map((l, i, arr) => `<img src="${l}" style="width:calc((100% - ${(arr.length - 1) * 8}px) / ${arr.length}); height:auto; border-radius:6px; object-fit:cover; border:1px solid #e5e7eb; box-shadow:0 1px 2px rgba(0,0,0,0.05);">`).join('')}</div></div>` : ''}
                 </div>
 
                 <div class="print-section" style="margin-bottom: 24px;">
@@ -1531,7 +1582,149 @@
 
         initStars();
 
-        // Search & Sensor Tower Logic
+        // =============================================
+        // CORS PROXY ROTATION SYSTEM (unlimited usage)
+        // =============================================
+        const _proxyList = [
+            url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+            url => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(url)}`,
+            url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+            url => `https://api.cors.lol/?url=${encodeURIComponent(url)}`,
+            url => `https://thingproxy.freeboard.io/fetch/${url}`,
+            url => `https://corsproxy.org/?${encodeURIComponent(url)}`,
+        ];
+        let _proxyIdx = 0;
+        const _proxyCache = new Map();
+
+        async function fetchViaProxy(url, timeoutMs = 10000) {
+            if (_proxyCache.has(url)) return _proxyCache.get(url);
+            const startIdx = _proxyIdx;
+            let lastErr = null;
+            for (let i = 0; i < _proxyList.length; i++) {
+                const idx = (startIdx + i) % _proxyList.length;
+                const proxyUrl = _proxyList[idx](url);
+                try {
+                    const ctrl = new AbortController();
+                    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+                    const res = await fetch(proxyUrl, { signal: ctrl.signal });
+                    clearTimeout(timer);
+                    if (!res.ok) { lastErr = new Error(`Proxy ${idx} returned ${res.status}`); continue; }
+                    const text = await res.text();
+                    if (!text || text.length < 100 || /limit|rate.?limit|too many|blocked/i.test(text.substring(0, 200))) {
+                        lastErr = new Error(`Proxy ${idx} rate limited`); continue;
+                    }
+                    _proxyIdx = (idx + 1) % _proxyList.length; // rotate for next call
+                    _proxyCache.set(url, text);
+                    return text;
+                } catch (e) {
+                    lastErr = e; continue;
+                }
+            }
+            throw lastErr || new Error("All CORS proxies failed. Try again shortly.");
+        }
+
+        // =============================================
+        // GOOGLE PLAY STORE HTML PARSER
+        // =============================================
+        function parsePlayStoreHtml(html, packageId) {
+            const gp = {};
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+
+            // Try JSON-LD structured data first (most reliable)
+            const ldScripts = doc.querySelectorAll('script[type="application/ld+json"]');
+            for (const s of ldScripts) {
+                try {
+                    const j = JSON.parse(s.textContent);
+                    if (j['@type'] === 'SoftwareApplication' || j['@type'] === 'MobileApplication') {
+                        gp.name = j.name;
+                        gp.description = j.description;
+                        gp.icon_url = j.image;
+                        gp.operatingSystem = j.operatingSystem;
+                        gp.category = j.applicationCategory;
+                        gp.contentRating = j.contentRating;
+                        if (j.author) gp.developer = j.author.name || j.author;
+                        if (j.aggregateRating) {
+                            gp.rating = j.aggregateRating.ratingValue;
+                            gp.ratingCount = j.aggregateRating.ratingCount;
+                        }
+                        if (j.offers) {
+                            gp.price = j.offers.price;
+                            gp.currency = j.offers.priceCurrency;
+                        }
+                        if (j.screenshot) {
+                            gp.screenshots = Array.isArray(j.screenshot) ? j.screenshot : [j.screenshot];
+                        }
+                    }
+                } catch (e) { /* skip bad JSON-LD */ }
+            }
+
+            // Fallback: Open Graph meta tags
+            if (!gp.name) {
+                const ogTitle = doc.querySelector('meta[property="og:title"]');
+                if (ogTitle) gp.name = ogTitle.content.replace(/ - Apps on Google Play$/i, '').trim();
+            }
+            if (!gp.icon_url) {
+                const ogImg = doc.querySelector('meta[property="og:image"]');
+                if (ogImg) gp.icon_url = ogImg.content;
+            }
+            if (!gp.description) {
+                const ogDesc = doc.querySelector('meta[property="og:description"]');
+                if (ogDesc) gp.description = ogDesc.content;
+            }
+
+            // Fallback: itemprop attributes
+            if (!gp.name) {
+                const nameEl = doc.querySelector('[itemprop="name"]');
+                if (nameEl) gp.name = nameEl.textContent.trim();
+            }
+
+            // Extract from page body via regex on raw HTML for fields Google hides in script blobs
+            // Installs — look for patterns like "1,000,000+" or "10M+" in the AF_initDataCallback blobs
+            const installMatch = html.match(/"(\d[\d,]*\+?)\s*downloads"/i)
+                || html.match(/\[\"(\d[\d,]*\+?)\"\]/g)?.find(m => /\d{4,}/.test(m));
+            if (installMatch) gp.installs = installMatch[1] || '';
+
+            // Try to extract screenshots from AF_initDataCallback data blobs
+            if (!gp.screenshots || gp.screenshots.length === 0) {
+                const ssMatches = [];
+                const ssRegex = /https:\/\/play-lh\.googleusercontent\.com\/[^"'\s,\]]+/g;
+                let m;
+                while ((m = ssRegex.exec(html)) !== null) {
+                    const url = m[0];
+                    // Filter: only screenshot-sized images (not icons/badges which are small)
+                    if (!ssMatches.includes(url) && !url.includes('=s48') && !url.includes('=s96') && !url.includes('=s180')) {
+                        ssMatches.push(url);
+                    }
+                }
+                // First image is usually the icon, rest are screenshots
+                if (ssMatches.length > 1) {
+                    if (!gp.icon_url || !gp.icon_url.includes('googleusercontent')) gp.icon_url = ssMatches[0];
+                    gp.screenshots = ssMatches.slice(1, 7);
+                }
+            }
+
+            // Description from the full page HTML (the og:description is truncated)
+            // Google embeds the full description in AF_initDataCallback as an array element
+            const descMatch = html.match(/\["([^"]{200,})"\]/);
+            if (descMatch && descMatch[1] && descMatch[1].length > (gp.description || '').length) {
+                // Unescape unicode & newlines
+                try {
+                    gp.full_description = descMatch[1]
+                        .replace(/\\n/g, '\n')
+                        .replace(/\\u003c/g, '<')
+                        .replace(/\\u003e/g, '>')
+                        .replace(/<br\s*\/?>/gi, '\n')
+                        .replace(/<\/?[^>]+(>|$)/g, '');
+                } catch (e) { }
+            }
+
+            gp.packageId = packageId;
+            return gp;
+        }
+
+        // =============================================
+        // SEARCH & FETCH LOGIC
+        // =============================================
         function closeSTModal() {
             const modal = document.getElementById('st-modal');
             modal.style.opacity = '0';
@@ -1566,6 +1759,14 @@
         async function performSearch(term) {
             term = term.trim();
 
+            // Allow pasting Google Play Store URL directly → extract package id & fetch
+            const gpUrlMatch = term.match(/play\.google\.com\/store\/apps\/details\?id=([a-zA-Z0-9_.]+)/i);
+            if (gpUrlMatch && gpUrlMatch[1]) {
+                console.log(`Intercepted Play Store URL: ${gpUrlMatch[1]}`);
+                fetchAppDetails(gpUrlMatch[1], 'android');
+                return;
+            }
+
             // Allow pasting Sensor Tower URL directly
             if (/sensortower\.com/i.test(term)) {
                 let os = 'ios';
@@ -1578,7 +1779,6 @@
 
                 if (appIdMatch && appIdMatch[1]) {
                     const extractedId = appIdMatch[1].replace(/[^a-zA-Z0-9_.-]/g, '');
-                    // Smart OS fallback: if it looks like a package name (com.xxx.yyy), it's android
                     if (extractedId.includes('.') && !/os=android/i.test(term) && !/\/android\//i.test(term)) {
                         os = 'android';
                     }
@@ -1588,13 +1788,21 @@
                 }
             }
 
+            // Allow pasting App Store URL directly
+            const iosUrlMatch = term.match(/apps\.apple\.com\/.*\/app\/.*\/id(\d+)/i);
+            if (iosUrlMatch && iosUrlMatch[1]) {
+                console.log(`Intercepted App Store URL: ${iosUrlMatch[1]}`);
+                fetchAppDetails(iosUrlMatch[1], 'ios');
+                return;
+            }
+
             searchResults.innerHTML = '';
             stErrorMsg.classList.add('hidden');
             searchSpinner.classList.remove('hidden');
 
             try {
-                // iTunes API natively supports CORS
-                const itunesUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=software&limit=5`;
+                // iTunes API natively supports CORS — finds both iOS & cross-platform games
+                const itunesUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=software&limit=6`;
 
                 const res = await fetch(itunesUrl);
                 if (!res.ok) throw new Error("Search API failed");
@@ -1608,9 +1816,11 @@
 
                 if (data.results && data.results.length > 0) {
                     data.results.forEach(app => {
+                        const hasBundleId = app.bundleId && app.bundleId.includes('.');
                         const div = document.createElement('div');
                         div.className = 'flex items-center gap-3 p-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg cursor-pointer transition-colors border border-transparent hover:border-zinc-200 dark:hover:border-zinc-700 group';
-                        div.onclick = () => fetchAppDetails(app.trackId, 'ios');
+                        // If it has an Android-style bundleId, default to android fetch (Play Store primary)
+                        div.onclick = () => fetchAppDetails(hasBundleId ? app.bundleId : app.trackId, hasBundleId ? 'android' : 'ios');
 
                         div.innerHTML = `
                             <img src="${app.artworkUrl100}" class="w-12 h-12 rounded-xl object-cover shadow-sm border border-zinc-200 dark:border-zinc-800 flex-shrink-0" alt="Icon">
@@ -1618,7 +1828,11 @@
                                 <h4 class="text-sm font-bold text-zinc-900 dark:text-zinc-100 truncate">${app.trackName}</h4>
                                 <p class="text-xs font-semibold text-zinc-500 dark:text-zinc-400 truncate mt-0.5 uppercase tracking-wide">${app.artistName}</p>
                             </div>
-                            <svg class="w-4 h-4 text-zinc-400 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                            <div class="flex items-center gap-1 flex-shrink-0">
+                                ${hasBundleId ? '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400">GP</span>' : ''}
+                                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400">iOS</span>
+                                <svg class="w-4 h-4 text-zinc-400 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                            </div>
                         `;
                         searchResults.appendChild(div);
                     });
@@ -1633,116 +1847,146 @@
             }
         }
 
-        async function fetchAppDetails(appId, os = 'ios') {
+        // =============================================
+        // FETCH APP DETAILS (Play Store primary, iTunes secondary)
+        // =============================================
+        async function fetchAppDetails(appId, os = 'android') {
             searchResults.innerHTML = '';
             searchInput.value = '';
             stErrorMsg.classList.add('hidden');
             searchSpinner.classList.remove('hidden');
 
             try {
-                const country = 'US';
-                // Using codetabs proxy to bypass CORS for Sensor Tower (can sometimes be rate limited)
-                const stApiUrl = `https://app.sensortower.com/api/${os}/apps/${appId}?country=${country}`;
-                const proxyUrl = `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(stApiUrl)}`;
+                let gpData = null;
+                let itunesData = null;
+                const isPackageId = String(appId).includes('.');
 
-                const res = await fetch(proxyUrl);
-                if (!res.ok) throw new Error("Failed to connect to ST API proxy.");
-
-                // Read text first to handle empty responses gracefully
-                const text = await res.text();
-                if (!text || text.trim() === '') {
-                    throw new Error("Proxy returned empty response (rate limited).");
+                // --- 1. GOOGLE PLAY (primary for Android) via proxy rotation ---
+                if (os === 'android' || isPackageId) {
+                    const packageId = isPackageId ? appId : null;
+                    if (packageId) {
+                        try {
+                            const gpUrl = `https://play.google.com/store/apps/details?id=${packageId}&hl=en&gl=US`;
+                            const html = await fetchViaProxy(gpUrl);
+                            gpData = parsePlayStoreHtml(html, packageId);
+                            console.log('Play Store data parsed:', gpData);
+                        } catch (gpErr) {
+                            console.warn('Play Store fetch failed, falling back to iTunes:', gpErr.message);
+                        }
+                    }
                 }
 
-                let st;
+                // --- 2. ITUNES (secondary / fallback / complementary) ---
                 try {
-                    st = JSON.parse(text);
-                } catch (e) {
-                    throw new Error("Proxy returned invalid JSON.");
-                }
-
-                if (!st || st.error || !st.name) {
-                    console.error("ST Error Details:", st);
-                    if (st && st.errors) {
-                        const errMsgs = st.errors.map(e => e.title || e.detail).join('; ');
-                        throw new Error(`Sensor Tower Error: ${errMsgs}`);
+                    let lookupUrl;
+                    if (isPackageId) {
+                        lookupUrl = `https://itunes.apple.com/lookup?bundleId=${encodeURIComponent(appId)}&country=US`;
+                    } else {
+                        lookupUrl = `https://itunes.apple.com/lookup?id=${appId}&country=US`;
                     }
-                    throw new Error("Invalid response from Sensor Tower.");
-                }
-
-                // Populate fields
-                if (st.name) document.getElementById('game-title').value = st.name;
-                if (st.icon_url) {
-                    document.getElementById('game-icon-url').value = st.icon_url;
-                    document.getElementById('game-icon-preview').src = st.icon_url;
-                }
-
-                if (st.top_countries && st.top_countries.length > 0) {
-                    document.getElementById('top-countries').value = st.top_countries.join(', ');
-                }
-
-                if (st.installs) {
-                    document.getElementById('installs').value = st.installs;
-                } else if (st.worldwide_last_month_downloads && st.worldwide_last_month_downloads.value) {
-                    let dl = st.worldwide_last_month_downloads.value;
-                    if (dl >= 1000000) dl = (dl / 1000000).toFixed(1) + "M+";
-                    else if (dl >= 1000) dl = (dl / 1000).toFixed(0) + "K+";
-                    document.getElementById('installs').value = dl;
-                }
-
-                if (st.worldwide_last_month_revenue && st.worldwide_last_month_revenue.value) {
-                    let rev = st.worldwide_last_month_revenue.value / 100;
-                    if (rev >= 1000000) rev = "$" + (rev / 1000000).toFixed(1) + "M";
-                    else if (rev >= 1000) rev = "$" + (rev / 1000).toFixed(0) + "K";
-                    else rev = "$" + rev;
-                    document.getElementById('mrr').value = rev;
-                }
-
-                if (st.current_version) document.getElementById('current-version').value = st.current_version;
-                if (st.recent_release_date) document.getElementById('last-updated').value = new Date(st.recent_release_date).toISOString().split('T')[0];
-                if (st.publisher_country) document.getElementById('publisher-country').value = st.publisher_country;
-                if (st.country_release_date) document.getElementById('country-release').value = new Date(st.country_release_date).toISOString().split('T')[0];
-                if (st.worldwide_release_date) document.getElementById('worldwide-release').value = new Date(st.worldwide_release_date).toISOString().split('T')[0];
-                if (st.minimum_os_version) document.getElementById('min-os').value = st.minimum_os_version;
-                if (st.file_size) {
-                    const bytes = parseInt(st.file_size);
-                    document.getElementById('file-size').value = isNaN(bytes) ? st.file_size : formatBytes(bytes);
-                }
-
-                if (st.top_in_app_purchases) {
-                    populateIapTable(st.top_in_app_purchases);
-                }
-
-                if (st.description && typeof st.description === 'object') {
-                    const short = st.description.subtitle || st.description.short_description || st.description.promo_text || st.short_description || st.subtitle || "";
-                    if (short) document.getElementById('short-desc').value = short;
-
-                    if (st.description.full_description) {
-                        document.getElementById('full-desc').value = st.description.full_description.replace(/<br\s*\/?>/gi, '\n');
+                    const itunesRes = await fetch(lookupUrl);
+                    if (itunesRes.ok) {
+                        const itunesJson = await itunesRes.json();
+                        if (itunesJson.results && itunesJson.results.length > 0) {
+                            itunesData = itunesJson.results[0];
+                            console.log('iTunes data loaded:', itunesData.trackName);
+                        }
                     }
-                } else if (typeof st.description === 'string') {
-                    document.getElementById('full-desc').value = st.description.replace(/<br\s*\/?>/gi, '\n');
-                    if (st.short_description || st.subtitle) {
-                        document.getElementById('short-desc').value = st.short_description || st.subtitle;
-                    }
-                } else if (st.short_description || st.subtitle) {
-                    document.getElementById('short-desc').value = st.short_description || st.subtitle;
+                } catch (itErr) {
+                    console.warn('iTunes lookup failed:', itErr.message);
                 }
 
+                // If both sources failed
+                if (!gpData && !itunesData) {
+                    throw new Error("App not found on either store. Try searching by name.");
+                }
+
+                // --- 3. POPULATE FIELDS (Play Store takes priority, iTunes fills gaps) ---
+
+                // Title
+                const title = gpData?.name || itunesData?.trackName || '';
+                if (title) document.getElementById('game-title').value = title;
+
+                // Icon
+                const icon = gpData?.icon_url || itunesData?.artworkUrl512 || itunesData?.artworkUrl100 || '';
+                if (icon) {
+                    document.getElementById('game-icon-url').value = icon;
+                    document.getElementById('game-icon-preview').src = icon;
+                }
+
+                // Installs (Play Store only)
+                if (gpData?.installs) {
+                    document.getElementById('installs').value = gpData.installs;
+                }
+
+                // Publisher / Developer
+                const dev = gpData?.developer || itunesData?.sellerName || itunesData?.artistName || '';
+                if (dev) document.getElementById('publisher-country').value = dev;
+
+                // Version
+                if (itunesData?.version) {
+                    document.getElementById('current-version').value = itunesData.version;
+                }
+
+                // Dates (iTunes is more reliable for dates)
+                if (itunesData?.currentVersionReleaseDate) {
+                    document.getElementById('last-updated').value = new Date(itunesData.currentVersionReleaseDate).toISOString().split('T')[0];
+                }
+                if (itunesData?.releaseDate) {
+                    const relDate = new Date(itunesData.releaseDate).toISOString().split('T')[0];
+                    document.getElementById('country-release').value = relDate;
+                    document.getElementById('worldwide-release').value = relDate;
+                }
+
+                // Min OS
+                if (gpData?.operatingSystem) {
+                    document.getElementById('min-os').value = gpData.operatingSystem;
+                } else if (itunesData?.minimumOsVersion) {
+                    document.getElementById('min-os').value = 'iOS ' + itunesData.minimumOsVersion;
+                }
+
+                // File size (iTunes only)
+                if (itunesData?.fileSizeBytes) {
+                    document.getElementById('file-size').value = formatBytes(parseInt(itunesData.fileSizeBytes));
+                }
+
+                // Price / Monetization
+                if (gpData?.price && gpData.price > 0) {
+                    document.getElementById('mrr').value = `${gpData.currency || '$'}${gpData.price} (premium)`;
+                } else if (itunesData?.formattedPrice && itunesData.formattedPrice !== 'Free') {
+                    document.getElementById('mrr').value = itunesData.formattedPrice + ' (premium)';
+                }
+
+                // Description — Play Store full_description > Play Store description > iTunes description
+                const fullDesc = gpData?.full_description || gpData?.description || itunesData?.description || '';
+                if (fullDesc) {
+                    document.getElementById('full-desc').innerText = fullDesc;
+                }
+
+                // Short desc — iTunes genres as fallback
+                const shortDescEl = document.getElementById('short-desc');
+                if (shortDescEl && (!shortDescEl.innerText || shortDescEl.innerText.trim() === '')) {
+                    if (itunesData?.genres && itunesData.genres.length > 0) {
+                        shortDescEl.innerText = itunesData.genres.join(', ');
+                    } else if (gpData?.category) {
+                        shortDescEl.innerText = gpData.category.replace(/^GAME_/, '').replace(/_/g, ' ');
+                    }
+                }
+
+                // Screenshots — Play Store first, then iTunes
                 let mediaArr = [];
-                if (st.screenshots) {
-                    if (Array.isArray(st.screenshots.android)) mediaArr = st.screenshots.android;
-                    else if (Array.isArray(st.screenshots.ios)) mediaArr = st.screenshots.ios;
-                    else if (Array.isArray(st.screenshots.iphone)) mediaArr = st.screenshots.iphone;
-                    else if (st.screenshots.ios && Array.isArray(st.screenshots.ios.iphone)) mediaArr = st.screenshots.ios.iphone;
-                    else if (Array.isArray(st.screenshots.ipad)) mediaArr = st.screenshots.ipad;
+                if (gpData?.screenshots && gpData.screenshots.length > 0) {
+                    mediaArr = gpData.screenshots;
+                } else if (itunesData?.screenshotUrls && itunesData.screenshotUrls.length > 0) {
+                    mediaArr = itunesData.screenshotUrls;
+                } else if (itunesData?.ipadScreenshotUrls && itunesData.ipadScreenshotUrls.length > 0) {
+                    mediaArr = itunesData.ipadScreenshotUrls;
                 }
 
-                if (mediaArr && mediaArr.length > 0) {
-                    const phoneOnly = mediaArr.slice(0, 6);
+                if (mediaArr.length > 0) {
                     const uniqueLinks = [];
                     const seenClean = new Set();
-                    for (const link of phoneOnly) {
+                    for (const link of mediaArr.slice(0, 6)) {
                         const clean = typeof link === 'string' ? link.replace(/=s\d+.*|=w\d+.*|=h\d+.*/g, '') : null;
                         if (clean && !seenClean.has(clean)) {
                             seenClean.add(clean);
@@ -1755,28 +1999,39 @@
                     }
                 }
 
-                const actualOs = (st.os || os).toLowerCase();
-                if (actualOs.includes('android')) {
+                // IAPs from iTunes
+                if (itunesData?.topInAppPurchases && typeof populateIapTable === 'function') {
+                    populateIapTable(itunesData.topInAppPurchases);
+                }
+
+                // --- 4. PLATFORM CHECKBOXES & STORE URLs ---
+                if (isPackageId || gpData) {
                     document.getElementById('plat-and').checked = true;
                     if (document.getElementById('url-and')) {
-                        document.getElementById('url-and').value = `https://play.google.com/store/apps/details?id=${appId}`;
+                        const pkg = gpData?.packageId || appId;
+                        document.getElementById('url-and').value = `https://play.google.com/store/apps/details?id=${pkg}`;
                         document.getElementById('url-and').classList.remove('hidden');
                     }
                 }
-                if (actualOs.includes('ios') || actualOs.includes('apple')) {
+                if (itunesData) {
                     document.getElementById('plat-ios').checked = true;
                     if (document.getElementById('url-ios')) {
-                        document.getElementById('url-ios').value = `https://apps.apple.com/app/id${appId}`;
+                        document.getElementById('url-ios').value = `https://apps.apple.com/app/id${itunesData.trackId}`;
                         document.getElementById('url-ios').classList.remove('hidden');
                     }
                 }
 
-                showToast("Sensor Tower data initialized!");
+                // Log rating for reference
+                if (gpData?.rating) console.log(`Play Store rating: ${gpData.rating}/5 (${gpData.ratingCount || '?'} ratings)`);
+                if (itunesData?.averageUserRating) console.log(`App Store rating: ${itunesData.averageUserRating.toFixed(1)}/5 (${itunesData.userRatingCount || 0} ratings)`);
+
+                const source = gpData ? 'Play Store' : 'iTunes';
+                showToast(`${title} loaded from ${source}!`);
                 closeSTModal();
             } catch (err) {
                 console.error(err);
                 searchSpinner.classList.add('hidden');
-                stErrorMsg.textContent = "Error fetching details. Try another game.";
+                stErrorMsg.textContent = err.message || "Error fetching details. Try another game.";
                 stErrorMsg.classList.remove('hidden');
             }
         }
